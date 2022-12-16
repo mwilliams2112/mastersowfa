@@ -1,0 +1,49 @@
+#!/bin/bash
+#SBATCH --job-name=setupTutPrec
+#SBATCH -o foam1preprocess.log
+#SBATCH -e foam1preprocess.err
+#SBATCH -n 36
+#SBATCH -p multi
+#SBATCH -t 1:00:00
+#SBATCH --mail-user=matt.e.williams@durham.ac.uk
+#SBATCH --mail-type=ALL
+
+source $HOME/environmentScripts/OF-6-env-gcc-central
+cores=$SLURM_NTASKS
+
+echo "Working directory is" $SLURM_SUBMIT_DIR
+echo "Job name is" $SLURM_JOB_NAME
+echo "Submit time is" $(squeue -u $USER -o '%30j %20V' | grep -e $SLURM_JOB_NAME | awk '{print $2}')
+echo "Starting OpenFOAM job at: " $(date)
+echo "using" $cores "core(s)"
+
+# ******************************************** USER INPUT ******************************************** #
+OpenFOAM-6-gcc-central              # OpenFOAM/SOWFA version. OpenFOAM-6-{gcc,intel}-{central,dev}
+startTime=0                     # Start time
+stabState=neutral               # neutral, stable, unstable, wrf
+solver=superDeliciousVanilla
+# **************************************************************************************************** #
+
+# **************************************** PERFORM SOME CHECKS *************************************** #
+if [ ! -f system/controlDict.$solver ];           then echo "Job killed (1)"; scancel $SLURM_JOBID; fi
+if [ ! -f setUp.$stabState ];                     then echo "Job killed (2)"; scancel $SLURM_JOBID; fi
+# **************************************************************************************************** #
+
+# ************************************** COPY APPROPRIATE FILES ************************************** #
+cp system/controlDict.$solver                          system/controlDict
+cp setUp.$stabState                                    setUp
+# **************************************************************************************************** #
+
+# Copy the "clean" .original initial fields to a working copy
+rm -rf $startTime
+cp -rf $startTime.original $startTime
+cp     $startTime/qwall.$stabState  $startTime/qwall
+rm     $startTime/qwall.*
+
+# Build the mesh and check it
+blockMesh -noFunctionObjects > log.1.blockMesh 2>&1
+checkMesh -noFunctionObjects > log.1.checkMesh.background 2>&1
+
+echo "Ending OpenFOAM job at: " $(date)
+
+# **************************************************************************************************** #
