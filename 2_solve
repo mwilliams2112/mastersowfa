@@ -8,7 +8,7 @@
 #SBATCH --mail-user=matt.e.williams@durham.ac.uk
 #SBATCH --mail-type=ALL
 
-source $HOME/environmentScripts/OF-6-env-gcc-central
+source $HOME/.bash_profile
 cores=$SLURM_NTASKS
 
 echo "Working directory is" $SLURM_SUBMIT_DIR
@@ -18,7 +18,7 @@ echo "Starting OpenFOAM job at: " $(date)
 echo "using" $cores "core(s)"
 
 # ******************************************** USER INPUT ******************************************** #
-OpenFOAM-6-gcc-central              # OpenFOAM/SOWFA version. OpenFOAM-6-{gcc,intel}-{central,dev}
+SOWFA                           # OpenFOAM/SOWFA version. OpenFOAM-6-{gcc,intel}-{central,dev}
 startTime=0                     # Start time (DO NOT change for restarted runs)
 writeIntervalBeforeBdData=5000  # Averages computation starts with "BdData" times
 endTimeBeforeBdData=20000
